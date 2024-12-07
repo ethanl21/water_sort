@@ -3,6 +3,7 @@ Water Sort Puzzle Game
 """
 
 import arcade
+import copy
 
 # Constants
 SCREEN_WIDTH = 1000
@@ -20,6 +21,7 @@ class WaterSortAStar:
         self.water_tubes = water_tubes
         self.max_layers = max_layers
         self.history = []
+        self.state_history = []
 
     def top_color(self, tube):
         return tube[-1] if tube else None
@@ -70,6 +72,8 @@ class WaterSortAStar:
         if not self.can_pour(from_tube_idx, to_tube_idx):
             print(f"Cannot pour from {from_tube_idx} to {to_tube_idx}")
             return
+        
+        self.state_history.append(copy.deepcopy(self.water_tubes))
 
         print(f"Pouring from {from_tube_idx} to {to_tube_idx}")
         # copy the tubes
@@ -100,6 +104,14 @@ class WaterSortAStar:
 
         # Save the move
         self.history.append((from_tube_idx, to_tube_idx))
+
+    def undo_pour(self):
+        if not self.history or self.history == []:
+            return
+
+        # Reset the tubes to the last move
+        self.water_tubes = self.state_history.pop()
+        self.history.pop()
 
 
 class MyGame(arcade.Window):
@@ -242,7 +254,7 @@ class MyGame(arcade.Window):
             <= self.button_y + BUTTON_HEIGHT / 2
         ):
             print("Back button clicked!")
-            self.state.pour(1, 0)
+            self.state.undo_pour()
 
         if (
             self.forward_button_x - BUTTON_WIDTH / 2
