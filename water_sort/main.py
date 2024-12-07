@@ -24,7 +24,6 @@ class WaterSortAStar:
         for i, color in enumerate(tube[::-1]):
             print(i, color)
             if color != top_color:
-                print("returning", i)
                 return i + 1
 
         return len(tube)
@@ -99,6 +98,9 @@ class WaterSortAStar:
         # update the tubes
         self.water_tubes[from_tube_idx] = _from
         self.water_tubes[to_tube_idx] = _to
+        
+        # Save the move
+        self.history.append((from_tube_idx, to_tube_idx))
 
 
 class MyGame(arcade.Window):
