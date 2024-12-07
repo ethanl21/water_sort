@@ -9,6 +9,11 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "A* Water Sort"
 
+# Button constants
+BUTTON_WIDTH = 100
+BUTTON_HEIGHT = 40
+BUTTON_PADDING = 10  # Padding between buttons
+
 
 class WaterSortAStar:
     def __init__(self, water_tubes, max_layers=8):
@@ -57,12 +62,6 @@ class WaterSortAStar:
             print("to is full")
             return False
 
-        # Can't pour if the top colors don't match
-        if _from[-1] != _to[-1]:
-            print(_from[-1], _to[-1])
-            print("top colors do not match")
-            return False
-
         # from_tube not empty, to_tube not full, and top colors match
         return True
 
@@ -98,7 +97,7 @@ class WaterSortAStar:
         # update the tubes
         self.water_tubes[from_tube_idx] = _from
         self.water_tubes[to_tube_idx] = _to
-        
+
         # Save the move
         self.history.append((from_tube_idx, to_tube_idx))
 
@@ -114,25 +113,31 @@ class MyGame(arcade.Window):
 
         arcade.set_background_color(arcade.csscolor.FLORAL_WHITE)
 
-    def setup(self, tubes):
-        """Set up the game here. Call this function to restart the game."""
-
-        # Init the state
-        self.state = WaterSortAStar(tubes)
-
-        self.state.pour(0, 1)
-
-        # todo: solve the puzzle
+        # Calculate button positions
+        self.back_button_x = (
+            SCREEN_WIDTH - BUTTON_PADDING - (BUTTON_WIDTH * 2) - BUTTON_PADDING
+        )
+        self.forward_button_x = SCREEN_WIDTH - BUTTON_PADDING - BUTTON_WIDTH
+        self.button_y = SCREEN_HEIGHT - BUTTON_PADDING - (BUTTON_HEIGHT / 2)
 
         # Move counter label object, not used in the search
         self.moves_label = arcade.Text(
-            f"Moves: {len(self.state.history)}",
+            "",
             150,
             600,
             arcade.csscolor.BLACK,
             18,
             font_name="Arial",
         )
+
+    def setup(self, tubes):
+        """Set up the game here. Call this function to restart the game."""
+
+        # Init the state
+        self.state = WaterSortAStar(tubes)
+        self.moves_label.text = f"Moves: {len(self.state.history)}"
+
+        # todo: solve the puzzle
 
     # Draw a water tube centered at the given position with the given colors
     def draw_water_tube(self, x, y, colors):
@@ -187,6 +192,68 @@ class MyGame(arcade.Window):
         # Draw the water tubes
         for idx, tube in enumerate(self.state.water_tubes):
             self.draw_water_tube(200 + idx * 200, 350, tube)
+
+        # Draw the back and forward buttons
+
+        # Draw "Back" button
+        arcade.draw_rectangle_filled(
+            self.back_button_x,
+            self.button_y,
+            BUTTON_WIDTH,
+            BUTTON_HEIGHT,
+            arcade.color.DARK_RED,
+        )
+        arcade.draw_text(
+            "Back",
+            self.back_button_x,
+            self.button_y,
+            arcade.color.WHITE,
+            font_size=14,
+            anchor_x="center",
+            anchor_y="center",
+        )
+
+        # Draw "Forward" button
+        arcade.draw_rectangle_filled(
+            self.forward_button_x,
+            self.button_y,
+            BUTTON_WIDTH,
+            BUTTON_HEIGHT,
+            arcade.color.DARK_GREEN,
+        )
+        arcade.draw_text(
+            "Forward",
+            self.forward_button_x,
+            self.button_y,
+            arcade.color.WHITE,
+            font_size=14,
+            anchor_x="center",
+            anchor_y="center",
+        )
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        """Handle mouse click events."""
+        if (
+            self.back_button_x - BUTTON_WIDTH / 2
+            <= x
+            <= self.back_button_x + BUTTON_WIDTH / 2
+            and self.button_y - BUTTON_HEIGHT / 2
+            <= y
+            <= self.button_y + BUTTON_HEIGHT / 2
+        ):
+            print("Back button clicked!")
+            self.state.pour(1, 0)
+
+        if (
+            self.forward_button_x - BUTTON_WIDTH / 2
+            <= x
+            <= self.forward_button_x + BUTTON_WIDTH / 2
+            and self.button_y - BUTTON_HEIGHT / 2
+            <= y
+            <= self.button_y + BUTTON_HEIGHT / 2
+        ):
+            print("Forward button clicked!")
+            self.state.pour(0, 1)
 
 
 def main():
