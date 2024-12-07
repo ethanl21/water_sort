@@ -10,6 +10,97 @@ SCREEN_HEIGHT = 650
 SCREEN_TITLE = "A* Water Sort"
 
 
+class WaterSortAStar:
+    def __init__(self, water_tubes, max_layers=8):
+        self.water_tubes = water_tubes
+        self.max_layers = max_layers
+        self.history = []
+
+    def top_color(self, tube):
+        return tube[-1] if tube else None
+
+    def pourable_count(self, tube):
+        top_color = self.top_color(tube)
+        for i, color in enumerate(tube[::-1]):
+            print(i, color)
+            if color != top_color:
+                print("returning", i)
+                return i + 1
+
+        return len(tube)
+
+    def is_sorted(tube):
+        # Empty or nonexistent tubes are considered sorted
+        if not tube or tube == []:
+            return True
+
+        # Sorted tubes have only one color
+        return len(set(tube)) == 1
+
+    def heuristic(self):
+        # Heuristic is the number of tubes that are not sorted
+        return sum(1 for tube in self.water_tubes if not self.is_sorted(tube))
+
+    def is_goal(self):
+        return self.heuristic() == 0
+
+    def can_pour(self, from_tube_idx, to_tube_idx):
+        _from = self.water_tubes[from_tube_idx]
+        _to = self.water_tubes[to_tube_idx]
+
+        # Can't pour from an empty tube
+        if not _from or _from == []:
+            print("from is empty")
+            return False
+
+        # Can't pour into a full tube
+        if len(_to) == self.max_layers:
+            print("to is full")
+            return False
+
+        # Can't pour if the top colors don't match
+        if _from[-1] != _to[-1]:
+            print(_from[-1], _to[-1])
+            print("top colors do not match")
+            return False
+
+        # from_tube not empty, to_tube not full, and top colors match
+        return True
+
+    def pour(self, from_tube_idx, to_tube_idx):
+        # Can't pour if the tubes are not compatible
+        if not self.can_pour(from_tube_idx, to_tube_idx):
+            print(f"Cannot pour from {from_tube_idx} to {to_tube_idx}")
+            return
+
+        print(f"Pouring from {from_tube_idx} to {to_tube_idx}")
+        # copy the tubes
+        _from = self.water_tubes[from_tube_idx]
+        _to = self.water_tubes[to_tube_idx]
+
+        # get the top color of the from tube
+        pour_color = self.top_color(_from)
+
+        # determine how many layer can be poured from the from_tube
+        from_count = self.pourable_count(_from)
+
+        # determine how many layer can be poured into the to_tube
+        to_count = self.max_layers - len(_to)
+
+        # determine how many layers can be poured
+        pour_count = min(from_count, to_count)
+        print(f"Pouring {pour_count} layers")
+
+        # pour the layers
+        for _ in range(pour_count):
+            _to.append(pour_color)
+            _from.pop()
+
+        # update the tubes
+        self.water_tubes[from_tube_idx] = _from
+        self.water_tubes[to_tube_idx] = _to
+
+
 class MyGame(arcade.Window):
     """
     Main application class.
@@ -21,13 +112,19 @@ class MyGame(arcade.Window):
 
         arcade.set_background_color(arcade.csscolor.FLORAL_WHITE)
 
-    def setup(self):
+    def setup(self, tubes):
         """Set up the game here. Call this function to restart the game."""
-        self.water_tubes = [[], [], []]
-        self.move_history = []  # list of tuples (from, to)
 
+        # Init the state
+        self.state = WaterSortAStar(tubes)
+
+        self.state.pour(0, 1)
+
+        # todo: solve the puzzle
+
+        # Move counter label object, not used in the search
         self.moves_label = arcade.Text(
-            f"Moves: {len(self.move_history)}",
+            f"Moves: {len(self.state.history)}",
             150,
             600,
             arcade.csscolor.BLACK,
@@ -35,15 +132,10 @@ class MyGame(arcade.Window):
             font_name="Arial",
         )
 
-        # todo: solve the puzzle here, then store the solution
-
     # Draw a water tube centered at the given position with the given colors
     def draw_water_tube(self, x, y, colors):
         # Draw the water
-        for idx, color in enumerate(colors[::-1]):
-            if color is None:
-                continue
-
+        for idx, color in enumerate(colors):
             if idx == 0:  # bottom layer arc
                 arcade.draw_arc_filled(
                     x, y - 250, 100, 100, arcade.csscolor.BLUE, 180, 360
@@ -73,7 +165,7 @@ class MyGame(arcade.Window):
         self.clear()
 
         # Update the moves label text
-        self.moves_label.text = f"Moves: {len(self.move_history)}"
+        self.moves_label.text = f"Moves: {len(self.state.history)}"
 
         # Draw the lined paper background
         for i in range(0, 10):
@@ -91,18 +183,16 @@ class MyGame(arcade.Window):
         self.moves_label.draw()
 
         # Draw the water tubes
-        for idx, tube in enumerate(self.water_tubes):
+        for idx, tube in enumerate(self.state.water_tubes):
             self.draw_water_tube(200 + idx * 200, 350, tube)
 
 
 def main():
     """Main function"""
-    window = MyGame()
-    window.setup()
 
     # Initialize the water tube layers
-    # Water color layers from top to bottom, or None for an empty layer
-    window.water_tubes = [
+    # Water color layers from bottom to top, or None for an empty layer
+    water_tubes = [
         [
             arcade.csscolor.BLUE,
             arcade.csscolor.INDIANRED,
@@ -110,23 +200,18 @@ def main():
             arcade.csscolor.GREEN,
             arcade.csscolor.BLUE,
             arcade.csscolor.INDIANRED,
-            arcade.csscolor.RED,
+            arcade.csscolor.GREEN,
             arcade.csscolor.GREEN,
         ],
         [
-            None,
-            None,
-            None,
             arcade.csscolor.BLUE,
             arcade.csscolor.INDIANRED,
             arcade.csscolor.RED,
             arcade.csscolor.GREEN,
             arcade.csscolor.BLUE,
+            arcade.csscolor.GREEN,
         ],
         [
-            None,
-            None,
-            None,
             arcade.csscolor.BLUE,
             arcade.csscolor.INDIANRED,
             arcade.csscolor.RED,
@@ -134,9 +219,6 @@ def main():
             arcade.csscolor.BLUE,
         ],
         [
-            None,
-            None,
-            None,
             arcade.csscolor.BLUE,
             arcade.csscolor.INDIANRED,
             arcade.csscolor.RED,
@@ -144,6 +226,9 @@ def main():
             arcade.csscolor.BLUE,
         ],
     ]
+
+    window = MyGame()
+    window.setup(water_tubes)
 
     # Main loop
     arcade.run()
