@@ -10,5 +10,5 @@ In the root of the repository, run the following commands:
 
 ```bash
 poetry install
-poetry run python3 water_sort main.py
+poetry run python3 water_sort/main.py
 ```
