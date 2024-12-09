@@ -1,6 +1,7 @@
 import heapq
 from copy import deepcopy
 
+
 def is_sorted(tube):
     """Check if a tube is fully sorted or empty."""
     return not tube or len(set(tube)) == 1
@@ -22,7 +23,13 @@ def valid_moves(state):
             continue
         # Find topmost color to pour
         top_color = src[-1]
-        contiguous_count = sum(1 for i in reversed(src) if i == top_color)
+
+        contiguous_count = 0
+        for color in reversed(src):
+            if color == top_color:
+                contiguous_count += 1
+            else:
+                break
 
         for dest_idx, dest in enumerate(state):
             if src_idx == dest_idx:  # Skip pouring into the same tube
@@ -42,7 +49,12 @@ def apply_move(state, src_idx, dest_idx):
     state = deepcopy(state)
     src, dest = state[src_idx], state[dest_idx]
     top_color = src[-1]
-    contiguous_count = sum(1 for i in reversed(src) if i == top_color)
+    contiguous_count = 0
+    for color in reversed(src):
+        if color == top_color:
+            contiguous_count += 1
+        else:
+            break
 
     # Transfer liquid
     pour_amount = min(contiguous_count, 8 - len(dest))
@@ -53,8 +65,13 @@ def apply_move(state, src_idx, dest_idx):
 
 
 def is_goal_state(state):
-    """Check if all tubes are sorted or empty."""
-    return all(is_sorted(tube) for tube in state)
+    """Check if all tubes are sorted or empty and there are not multiple tubes with the same color."""
+    top_colors = []
+    for tube in state:
+        top_colors.append(tube[-1] if tube else None)
+    return all(is_sorted(tube) for tube in state) and len(set(top_colors)) == len(
+        top_colors
+    )
 
 
 def solve(initial_state):
