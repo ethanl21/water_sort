@@ -187,9 +187,9 @@ def main():
     # Initialize the water tube layers
     # Water color layers from bottom to top, or None for an empty layer
     water_tubes = [
-        [(255, 0, 0), (255, 0, 0), (0, 255, 0)],  # Tube 1
-        [(0, 255, 0), (255, 0, 0)],  # Tube 2
-        [(0, 0, 255)],  # Tube 3
+        [arcade.csscolor.RED, arcade.csscolor.RED, arcade.csscolor.GREEN, arcade.csscolor.BLUE, arcade.csscolor.BLUE ],  # Tube 1
+        [arcade.csscolor.GREEN, arcade.csscolor.RED, arcade.csscolor.GREEN],  # Tube 2
+        [arcade.csscolor.BLUE, arcade.csscolor.RED],  # Tube 3
         [],  # Tube 4 (empty)
     ]
 
