@@ -89,7 +89,10 @@ class MyGame(arcade.Window):
         self.clear()
 
         # Update the moves label text
-        self.moves_label.text = f"Moves: {self.solution_step}"
+        if not self.solution:
+            self.moves_label.text = "No solution found :("
+        else:
+            self.moves_label.text = f"Moves: {self.solution_step}"
 
         # Draw the lined paper background
         for i in range(0, 10):
@@ -175,7 +178,7 @@ class MyGame(arcade.Window):
             <= self.button_y + BUTTON_HEIGHT / 2
         ):
             print("Forward button clicked!")
-            if self.solution_step < len(self.solution):
+            if self.solution and  self.solution_step < len(self.solution):
                 src_idx, dest_idx = self.solution[self.solution_step]
                 self.state = water_sort.apply_move(self.state, src_idx, dest_idx)
                 self.solution_state_history.append(copy.deepcopy(self.state))
