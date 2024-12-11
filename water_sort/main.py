@@ -5,6 +5,7 @@ Water Sort Puzzle Game
 import arcade
 import copy
 import water_sort
+import json
 
 # Constants
 SCREEN_WIDTH = 1000
@@ -186,13 +187,18 @@ def main():
 
     # Initialize the water tube layers
     # Water color layers from bottom to top, or None for an empty layer
-    water_tubes = [
-        [arcade.csscolor.RED, arcade.csscolor.RED, arcade.csscolor.GREEN, arcade.csscolor.BLUE, arcade.csscolor.BLUE ],  # Tube 1
-        [arcade.csscolor.GREEN, arcade.csscolor.RED, arcade.csscolor.GREEN],  # Tube 2
-        [arcade.csscolor.BLUE, arcade.csscolor.RED],  # Tube 3
-        [],  # Tube 4 (empty)
-    ]
+    water_tubes = [[], [], [], []]
 
+    with open("puzzle.json", "r") as f:
+        water_tubes = json.load(f)
+        water_tubes = water_tubes["tubes"]
+
+    # convert all rgb lists to tuples
+    for tube in water_tubes:
+        for i in range(len(tube)):
+            tube[i] = tuple(tube[i])
+
+    print(water_tubes)
     window = MyGame()
     window.setup(water_tubes)
 
